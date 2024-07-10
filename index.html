@@ -9,7 +9,30 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <script>
+      window.fbAsyncInit = function () {
+        FB.init({
+          appId: '904086431755202',
+          cookie: true,
+          xfbml: true,
+          version: 'v20.0'
+        });
+
+        FB.AppEvents.logPageView();
+
+        window.FB = FB;
+      };
+
+      (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) { return; }
+        js = d.createElement(s); js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));
+    </script>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

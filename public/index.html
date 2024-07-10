@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Integration</title>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script>
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: '904086431755202',
+                cookie: true,
+                xfbml: true,
+                version: 'v20.0'
+            });
+
+            FB.AppEvents.logPageView();
+
+            window.FB = FB;
+        };
+
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) { return; }
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
+</body>
+
+</html>
