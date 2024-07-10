@@ -1,27 +1,15 @@
-import { useEffect, useState } from "react";
-import { FaGoogle, FaFacebook, FaGithub, FaLinkedin } from "react-icons/fa";
-import LoginImg from "/login.jpg";
+import { useState } from "react";
+import { FaFacebook } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  loadCaptchaEnginge,
-  LoadCanvasTemplate,
-  validateCaptcha,
-} from "react-simple-captcha";
 import useAuth from "../../hooks/useAuth";
-import { Helmet } from "react-helmet-async";
-import useAxiosPublic from "./../../hooks/useAxiosPublic";
 
 const Login = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
-  const { signInUser, loginWithGoogle, loginWithGithub } = useAuth();
-  const axiosPublic = useAxiosPublic();
-  useEffect(() => {
-    loadCaptchaEnginge(6);
-  }, []);
+  const { signInUser } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -30,14 +18,8 @@ const Login = () => {
     const form = new FormData(e.currentTarget);
     const email = form.get("email");
     const password = form.get("password").trim();
-    const userCaptchaValue = form.get("captcha");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!validateCaptcha(userCaptchaValue)) {
-      setError("Captcha Does Not Match");
-      return;
-    }
 
     if (!email) {
       setError("Email is required");
@@ -67,148 +49,78 @@ const Login = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    loginWithGoogle()
-      .then((result) => {
-        const userInfo = {
-          name: result.user?.displayName,
-          profileImg: result.user?.photoURL,
-          email: result.user?.email,
-          role: "user",
-        };
-        axiosPublic.post("/users", userInfo);
-        navigate(from, { replace: true });
-        toast.success("Google Login Successfully");
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
-  };
-
-  const handleGithubSignIn = () => {
-    loginWithGithub()
-      .then((result) => {
-        const userInfo = {
-          name: result.user?.displayName,
-          profileImg: result.user?.photoURL,
-          email: result.user?.email,
-        };
-        axiosPublic.post("/users", userInfo);
-        navigate(from, { replace: true });
-        toast.success("GitHub Login successfully");
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
-  };
-
-  const handleSocialLogin = () => {
+  const handleFacebook = () => {
     setError(
       "Please try other options. This is not built yet! Still in progress."
     );
   };
 
   return (
-    <div>
-      <Helmet>
-        <title>Bistro Boss | Login</title>
-      </Helmet>
-      <div className="hero min-h-screen bg-base-200">
-        <div className="hero-content w-[95%] mx-auto flex-col lg:flex-row">
-          <div className="md:w-1/2">
-            <img src={LoginImg} alt="Login" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-6 text-gray-800">
+          Welcome Back!
+        </h1>
+        <form onSubmit={handleLogin}>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+              required
+            />
           </div>
-          <div className="card shrink-0 w-full max-w-xl shadow-2xl bg-base-100">
-            <h1 className="text-2xl md:text-5xl mt-4 text-center font-bold">
-              Welcome Back!
-            </h1>
-            <form onSubmit={handleLogin} className="card-body">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Email</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="email"
-                  className="input input-bordered"
-                  required
-                />
-              </div>
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Password</span>
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="password"
-                  className="input input-bordered"
-                  required
-                />
-                <label className="label">
-                  <a href="#" className="label-text-alt link link-hover">
-                    Forgot password?
-                  </a>
-                </label>
-              </div>
-              <div className="form-control">
-                <LoadCanvasTemplate />
-                <input
-                  type="text"
-                  name="captcha"
-                  placeholder="Enter captcha"
-                  className="input input-bordered"
-                  required
-                />
-              </div>
-              {error && (
-                <div className="text-red-500 text-center my-2">{error}</div>
-              )}
-              <div className="form-control">
-                <button type="submit" className="btn btn-primary">
-                  Login
-                </button>
-              </div>
-              <div className="flex justify-center">
-                <p className="text-sm">New to Bistro Boss?</p>
-                <Link to="/register" className="ml-1 text-primary font-bold">
-                  Register Now
-                </Link>
-              </div>
-              <div className="divider my-0">OR</div>
-              <h3 className="text-lg text-center font-semibold">
-                Continue with
-              </h3>
-              <div className="flex items-center flex-wrap justify-evenly w-full">
-                <button
-                  onClick={handleGoogleSignIn}
-                  className="btn btn-circle bg-red-600 text-white"
-                >
-                  <FaGoogle />
-                </button>
-                <button
-                  onClick={handleSocialLogin}
-                  className="btn btn-circle bg-blue-700 text-white"
-                >
-                  <FaFacebook />
-                </button>
-                <button
-                  onClick={handleGithubSignIn}
-                  className="btn btn-circle bg-gray-800 text-white"
-                >
-                  <FaGithub />
-                </button>
-                <button
-                  onClick={handleSocialLogin}
-                  className="btn btn-circle bg-blue-800 text-white"
-                >
-                  <FaLinkedin />
-                </button>
-              </div>
-            </form>
+          <div className="mb-6">
+            <label className="block text-gray-700 mb-2">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+              required
+            />
+            <div className="text-right mt-2">
+              <a href="#" className="text-sm text-pink-600 hover:underline">
+                Forgot password?
+              </a>
+            </div>
           </div>
-        </div>
+          {error && (
+            <div className="text-red-500 text-center mb-4">{error}</div>
+          )}
+          <div className="mb-4">
+            <button
+              type="submit"
+              className="w-full bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700 transition duration-200"
+            >
+              Login
+            </button>
+          </div>
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-gray-600">New to Mojo Test?</span>
+            <Link
+              to="/register"
+              className="text-pink-600 font-bold hover:underline"
+            >
+              Register Now
+            </Link>
+          </div>
+          <div className="flex items-center justify-center mb-4">
+            <div className="border-t w-full border-gray-300"></div>
+            <span className="mx-4 text-gray-500">OR</span>
+            <div className="border-t w-full border-gray-300"></div>
+          </div>
+          <div className="flex justify-center">
+            <button
+              onClick={handleFacebook}
+              className="flex items-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+            >
+              <FaFacebook className="mr-2" /> Continue with Facebook
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

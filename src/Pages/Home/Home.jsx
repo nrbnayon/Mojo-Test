@@ -1,63 +1,78 @@
-import { Helmet } from "react-helmet-async";
-import { useEffect } from "react";
-import AOS from "aos";
-import "aos/dist/aos.css";
-
-import Banner from "./Banner";
-import CategorySlider from "./CategorySlider";
-import Contacts from "./Contacts";
-import Featured from "./Featured";
-import PopularMenu from "./PopularMenu";
-import Recommends from "./Recommends";
-import Testimonials from "./Testimonials/Testimonials";
+import { useState } from "react";
+import LoginButton from "./FacebookLogin";
 
 const Home = () => {
-  useEffect(() => {
-    AOS.init({
-      disable: false,
-      startEvent: "DOMContentLoaded",
-      initClassName: "aos-init",
-      animatedClassName: "aos-animate",
-      useClassNames: false,
-      disableMutationObserver: false,
-      debounceDelay: 50,
-      throttleDelay: 99,
-      offset: 120,
-      delay: 0,
-      duration: 1000,
-      easing: "ease",
-      once: false,
-      mirror: true,
-      anchorPlacement: "top-bottom",
-    });
-  }, []);
+  const [user, setUser] = useState(null);
+  const [pages, setPages] = useState([]);
+  const [insights, setInsights] = useState(null);
+
+  const handleLogin = (response) => {
+    console.log(response);
+    setUser(response);
+    fetchPages(response.accessToken);
+  };
+
+  const fetchPages = (token) => {
+    fetch(`https://graph.facebook.com/me/accounts?access_token=${token}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setPages(data.data);
+      });
+  };
+
+  const fetchPageInsights = (pageId, token) => {
+    const since = "2023-01-01";
+    const until = "2023-12-31";
+    fetch(
+      `https://graph.facebook.com/v20.0/${pageId}/insights?metric=page_fans,page_engaged_users,page_impressions,page_reactions&period=total_over_range&since=${since}&until=${until}&access_token=${token}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setInsights(data.data);
+      });
+  };
+
+  const handlePageChange = (e) => {
+    const pageId = e.target.value;
+    fetchPageInsights(pageId, user.accessToken);
+  };
 
   return (
-    <div className="overflow-hidden">
-      <Helmet>
-        <title>Bistro Boss | Home</title>
-      </Helmet>
-      <div data-aos="fade-down" data-aos-delay="100" data-aos-duration="1000">
-        <Banner />
-      </div>
-      <div data-aos="fade-right" data-aos-delay="200" data-aos-duration="1000">
-        <CategorySlider />
-      </div>
-      <div data-aos="zoom-out" data-aos-delay="300" data-aos-duration="1000">
-        <PopularMenu />
-      </div>
-      <div data-aos="fade-up" data-aos-delay="400" data-aos-duration="1000">
-        <Contacts />
-      </div>
-      <div data-aos="fade-down" data-aos-delay="500" data-aos-duration="1000">
-        <Recommends />
-      </div>
-      <div data-aos="zoom-in" data-aos-delay="600" data-aos-duration="1000">
-        <Featured />
-      </div>
-      <div data-aos="flip-left" data-aos-delay="700" data-aos-duration="1000">
-        <Testimonials />
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      {!user ? (
+        <LoginButton onLogin={handleLogin} />
+      ) : (
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Welcome, {user.name}</h1>
+          <img
+            src={user.picture.data.url}
+            alt={user.name}
+            className="rounded-full mx-auto mb-4"
+          />
+          <select
+            onChange={handlePageChange}
+            className="mb-4 p-2 border rounded"
+          >
+            {pages.map((page) => (
+              <option key={page.id} value={page.id}>
+                {page.name}
+              </option>
+            ))}
+          </select>
+          {insights && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {insights.map((insight) => (
+                <div key={insight.name} className="bg-white p-4 rounded shadow">
+                  <h2 className="font-bold">{insight.title}</h2>
+                  <p>{insight.values[0].value}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
